@@ -66,7 +66,7 @@ object MenuHandler {
       3 -> (() => DataAnalyser.displayTotalRaces(f1Data)),
       4 -> (() => DataAnalyser.displayAveragePoints(f1Data)),
       5 -> (() => DataAnalyser.displayTotalPointsByYear(f1Data)),
-      6 -> (() => println("Display Total Points for Specific Driver"))
+      6 -> (() => DataAnalyser.displayDriverPoints(f1Data))
     )
 
     /**
@@ -397,7 +397,47 @@ object DataAnalyser {
     }
   }
 
-  // TODO - Analysis 6 - Get total points for a specific driver
+  /**
+   * Retrieves the total points for a specific driver or drivers matching a search query.
+   *
+   * @param f1Data     The dataset containing F1 data.
+   * @param driverName The name or partial name of the driver to search for.
+   * @return A map where the key is the driver's name and the value is their total points.
+   */
+  private def getDriverPoints(f1Data: F1Data, driverName: String): Map[String, Float] = {
+    f1Data.values.flatten
+      .filter { case (name, _, _) => name.toLowerCase.contains(driverName.toLowerCase) }
+      .groupBy(_._1)
+      .map { case (name, entries) => name -> entries.map(_._2).sum }
+  }
 
-  // TODO - Analysis 6 - Display total points for a specific driver
+  /**
+   * Displays the total points for a driver or drivers matching the input query.
+   *
+   * Prompts the user for a driver name or partial name, retrieves matching drivers,
+   * and prints their total points in a formatted table.
+   *
+   * @param f1Data The dataset containing F1 data.
+   */
+  def displayDriverPoints(f1Data: F1Data): Unit = {
+    val name = StdIn.readLine("Enter the driver's full name or part of the name: ").trim.toLowerCase
+    val driverPoints = getDriverPoints(f1Data, name)
+
+    if (driverPoints.isEmpty) {
+      println(s"No drivers found matching '$name'.")
+    } else {
+      println(s"\nTotal Points for Drivers Matching '$name':")
+
+      // Print header
+      println(f"${"Driver"}%-20s ${"Total Points"}%-12s")
+      println("-" * 35)
+
+      // Print results
+      driverPoints.toSeq
+        .sortBy(-_._2) // Sort by points in descending order
+        .foreach { case (driverName, points) =>
+          println(f"$driverName%-20s $points%-12.1f")
+        }
+    }
+  }
 }
