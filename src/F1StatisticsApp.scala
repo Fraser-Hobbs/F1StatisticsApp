@@ -62,7 +62,7 @@ object MenuHandler {
   def menuController(f1Data: F1Data): Unit = {
     val menuOptions = Map(
       1 -> (() => DataAnalyser.displayWinners(f1Data)),
-      2 -> (() => println("Display Results for Specific Season")),
+      2 -> (() => DataAnalyser.displaySeasonResults(f1Data)),
       3 -> (() => println("Display Total Races for each season")),
       4 -> (() => println("Display Average Points for each Season")),
       5 -> (() => println("Display Total Points for each Season")),
@@ -252,9 +252,44 @@ object DataAnalyser {
     }
   }
 
-  // TODO - Analysis 2 - Get results for a specific season
+  /**
+   * Retrieves the results for a specific season (year) from the F1 dataset.
+   *
+   * @param f1Data The dataset containing F1 data.
+   * @param year   The year for which results are to be retrieved.
+   * @return An Option containing a list of F1Driver tuples if the year exists, or None otherwise.
+   */
+  private def getSeasonResults(f1Data: F1Data, year: Int): Option[List[F1Driver]] = {
+    f1Data.get(year)
+  }
 
-  // TODO - Analysis 2 - Display results for a specific season
+  /**
+   * Displays the results for a specific season (year), sorted by points and wins.
+   *
+   * @param f1Data The dataset containing F1 data.
+   */
+  def displaySeasonResults(f1Data: F1Data): Unit = {
+    val year = StdIn.readLine("Enter the year: ").trim.toIntOption
+    year match {
+      case Some(y) =>
+        f1Data.get(y) match {
+          case Some(results) =>
+            println(s"\nResults for $y:")
+
+            // Print header
+            println(f"${"Driver"}%-25s ${"Points"}%-10s ${"Wins"}%-5s")
+            println("-" * 45)
+
+            // Format and print driver results
+            results.sortBy { case (_, points, wins) => (-points, -wins) } // Sort by points, then wins
+              .foreach { case (name, points, wins) =>
+                println(f"$name%-25s $points%-10.1f $wins%-5d")
+              }
+          case None => println(s"No data found for the year $y.")
+        }
+      case None => println("Invalid year input. Please enter a valid year.")
+    }
+  }
 
   // TODO - Analysis 3 - Get total number of races each season/year
 
