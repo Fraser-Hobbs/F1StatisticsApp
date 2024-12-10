@@ -63,7 +63,7 @@ object MenuHandler {
     val menuOptions = Map(
       1 -> (() => DataAnalyser.displayWinners(f1Data)),
       2 -> (() => DataAnalyser.displaySeasonResults(f1Data)),
-      3 -> (() => println("Display Total Races for each season")),
+      3 -> (() => DataAnalyser.displayTotalRaces(f1Data)),
       4 -> (() => println("Display Average Points for each Season")),
       5 -> (() => println("Display Total Points for each Season")),
       6 -> (() => println("Display Total Points for Specific Driver"))
@@ -291,9 +291,40 @@ object DataAnalyser {
     }
   }
 
-  // TODO - Analysis 3 - Get total number of races each season/year
+  /**
+   * Calculates the total number of races for each year in the dataset.
+   *
+   * Iterates through the F1 data, summing the race counts (`_3` field) for all drivers in each year.
+   *
+   * @param f1Data The dataset containing F1 data.
+   * @return A map where the key is the year, and the value is the total number of races for that year.
+   */
+  private def getTotalRacesByYear(f1Data: F1Data): Map[Int, Int] = {
+    f1Data.view.mapValues(drivers => drivers.map(_._3).sum).toMap
+  }
 
-  // TODO - Analysis 3 - Display total number of races each season/year
+  /**
+   * Displays the total number of races for each year in the dataset.
+   *
+   * Retrieves the total races for each year using `getTotalRacesByYear` and formats the output.
+   *
+   * @param f1Data The dataset containing F1 data.
+   */
+  def displayTotalRaces(f1Data: F1Data): Unit = {
+    val totalRaces = getTotalRacesByYear(f1Data)
+    println("\nTotal Races by Year:")
+
+    // Print header
+    println(f"${"Year"}%-6s ${"Total Races"}%-12s")
+    println("-" * 20)
+
+    // Sort by year in descending order and print each result
+    totalRaces.toSeq
+      .sortBy(-_._1) // Sort by year in descending order
+      .foreach { case (year, races) =>
+        println(f"$year%-6d $races%-12d")
+      }
+  }
 
   // TODO - Analysis 4 - Get average points per season
 
