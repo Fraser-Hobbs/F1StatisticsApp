@@ -1,5 +1,10 @@
+import DataHandler.F1Data
+
+import java.nio.file.{Files, Paths}
+import scala.util.{Try, Failure, Success}
 import scala.annotation.tailrec
-import scala.io.StdIn
+import scala.io.{Source, StdIn}
+import scala.util.Try
 
 
 object F1StatisticsApp extends App {
@@ -8,15 +13,18 @@ object F1StatisticsApp extends App {
   def main(): Unit = {
     println("Welcome to the F1 Statistics CLI Application")
 
-    MenuHandler.menuController()
+    try {
+      val f1Data = DataHandler.loadDataFromFile("resources/data.txt")
+      MenuHandler.menuController(f1Data)
+    } catch {
+      case e: IllegalArgumentException =>
+        println(e.getMessage)
+        println("Exiting application...")
+      case e: RuntimeException =>
+        println(s"Unexpected error: ${e.getMessage}")
+        println("Exiting application...")
+    }
 
-    // TODO -  Load f1 Dataset
-
-    // TODO - Check Dataset loaded (fail/pass)
-
-    // TODO - Pass - Load Menu
-
-    // TODO - Fail - Display Message and Exit
   }
 
 }
@@ -51,7 +59,7 @@ object MenuHandler {
    * @param f1Data Dataset used for the F1Statistics Application.
    * @see f1Data
    */
-  def menuController(): Unit = {
+  def menuController(f1Data: F1Data): Unit = {
     val menuOptions = Map(
       1 -> (() => println("Display Winners By Year")),
       2 -> (() => println("Display Results for Specific Season")),
@@ -88,13 +96,118 @@ object MenuHandler {
   }
 }
 
+
 object DataHandler {
 
-  // TODO - Create type aliases for F1Data and F1Driver
+  /**
+   * Represents the overall dataset for F1 statistics.
+   * Example:
+   * {{{
+   * val f1Data: F1Data = Map(
+   *   2023 -> List(("Max Verstappen", 575.0, 19), ("Sergio Perez", 285.0, 2))
+   * )
+   * }}}
+   */
+  type F1Data = Map[Int, List[F1Driver]]
 
-  // TODO - Load Data from file
+  /**
+   * Represents an individual driver's performance in a season.
+   *
+   * Example:
+   * {{{
+   * val driver: F1Driver = ("Max Verstappen", 575.0, 19)
+   * }}}
+   *
+   * Structure:
+   * - `String`: Driver's name
+   * - `Float`: Driver's total points
+   * - `Int`: Number of wins in the season
+   */
+  private type F1Driver = (String, Float, Int)
 
-  // TODO - Parse F1 Data
+  /**
+   * Loads F1 dataset from a file and parses it into the F1Data structure.
+   *
+   * @param filePath Path to the dataset file.
+   * @return Parsed F1Data map where the key is the year and the value is a list of drivers with their stats.
+   */
+  def loadDataFromFile(filePath: String): F1Data = {
+    if (!fileExists(filePath)) {
+      throw new IllegalArgumentException(s"File not found at: $filePath")
+    }
+
+    Try(Source.fromFile(filePath)) match {
+      case Success(source) =>
+        val data = parseDataset(source.getLines().toList)
+        source.close()
+        println("Data loaded successfully!")
+        data
+      case Failure(exception) =>
+        throw new RuntimeException(s"Error reading file: ${exception.getMessage}")
+    }
+  }
+
+  /**
+   * Checks if a file exists at the given path.
+   *
+   * @param filePath Path to the file.
+   * @return True if the file exists, False otherwise.
+   */
+  private def fileExists(filePath: String): Boolean = Files.exists(Paths.get(filePath))
+
+  /**
+   * Parses the dataset into F1Data.
+   *
+   * @param lines List of lines from the dataset file.
+   * @return Parsed F1Data map.
+   */
+  private def parseDataset(lines: List[String]): F1Data = {
+    var malformedEntries: List[String] = List()
+
+    val parsedData = lines.foldLeft(Map.empty[Int, List[F1Driver]]) { (map, line) =>
+      val parts = line.split(",", 2) // Split into year and driver details
+
+      // Validate the structure of the line
+      if (parts.length == 2 && Try(parts(0).toInt).isSuccess) {
+        val year = parts(0).toInt // Parse the year
+        val drivers = parts(1).split(",").toList.map { entry =>
+          val parsedDriver = parseDriver(entry)
+          if (parsedDriver._1 == "Unknown") {
+            malformedEntries = malformedEntries :+ s"Year $year: $entry" // Track malformed entries
+          }
+          parsedDriver
+        }
+        map + (year -> drivers)
+      } else {
+        malformedEntries = malformedEntries :+ s"Invalid line structure: $line" // Log invalid lines
+        map
+      }
+    }
+
+    if (malformedEntries.nonEmpty) {
+      println("\nMalformed entries detected:")
+      malformedEntries.foreach(entry => println(s"- $entry"))
+    }
+
+    parsedData
+  }
+
+  /**
+   * Parses a single driver entry into an F1Driver tuple.
+   *
+   * @param entry Raw string entry for a driver.
+   * @return Parsed F1Driver tuple (Name, Points, Wins).
+   */
+  private def parseDriver(entry: String): F1Driver = {
+    val driverPattern = """^([\w\s]+):\s(\d+(\.\d+)?)\s+(\d+)$""".r
+    entry.trim match {
+      case driverPattern(name, pointsStr, _, winsStr) =>
+        (name, pointsStr.toFloatOption.getOrElse(0.0f), winsStr.toIntOption.getOrElse(0))
+      case _ =>
+        println(s"Malformed driver entry: $entry") // Log malformed entries
+        ("Unknown", 0.0f, 0)
+    }
+  }
 }
 
 object DataAnalyser {
