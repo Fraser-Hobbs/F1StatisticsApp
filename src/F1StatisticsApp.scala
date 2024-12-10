@@ -1,7 +1,7 @@
-import DataHandler.F1Data
+import DataHandler.{F1Data, F1Driver}
 
 import java.nio.file.{Files, Paths}
-import scala.util.{Try, Failure, Success}
+import scala.util.{Failure, Success, Try}
 import scala.annotation.tailrec
 import scala.io.{Source, StdIn}
 import scala.util.Try
@@ -61,7 +61,7 @@ object MenuHandler {
    */
   def menuController(f1Data: F1Data): Unit = {
     val menuOptions = Map(
-      1 -> (() => println("Display Winners By Year")),
+      1 -> (() => DataAnalyser.displayWinners(f1Data)),
       2 -> (() => println("Display Results for Specific Season")),
       3 -> (() => println("Display Total Races for each season")),
       4 -> (() => println("Display Average Points for each Season")),
@@ -123,7 +123,7 @@ object DataHandler {
    * - `Float`: Driver's total points
    * - `Int`: Number of wins in the season
    */
-  private type F1Driver = (String, Float, Int)
+  type F1Driver = (String, Float, Int)
 
   /**
    * Loads F1 dataset from a file and parses it into the F1Data structure.
@@ -212,9 +212,45 @@ object DataHandler {
 
 object DataAnalyser {
 
-  // TODO - Analysis 1 - Get winners by year
+  /**
+   * Extracts the winner (first driver) for each year from the dataset.
+   *
+   * Assumes the first driver in the list is the winner for that year.
+   *
+   * @param f1Data The dataset containing F1 data.
+   * @return A map where the key is the year and the value is the winner's F1Driver tuple.
+   */
+  private def getWinners(f1Data: F1Data): Map[Int, F1Driver] = {
+    f1Data.collect {
+      case (year, drivers) if drivers.nonEmpty => year -> drivers.head
+    }
+  }
 
-  // TODO - Analysis 1 - Display winners by year
+  /**
+   * Displays the winners for each year, sorted in descending order by year.
+   *
+   * @param f1Data The dataset containing F1 data.
+   */
+  def displayWinners(f1Data: F1Data): Unit = {
+    val winners = getWinners(f1Data) // Retrieve the winners for each year
+
+    if (winners.nonEmpty) {
+      println("\nWinners by Year:")
+
+      // Print header
+      println(f"${"Year"}%-6s ${"Winner"}%-25s ${"Points"}%-10s ${"Wins"}%-5s")
+      println("-" * 50)
+
+      // Sort by year and print each winner
+      winners.toSeq
+        .sortBy(-_._1) // Sort by year in descending order
+        .foreach { case (year, (name, points, wins)) =>
+          println(f"$year%-6d $name%-25s $points%-10.1f $wins%-5d")
+        }
+    } else {
+      println("\nNo winners data available.")
+    }
+  }
 
   // TODO - Analysis 2 - Get results for a specific season
 
