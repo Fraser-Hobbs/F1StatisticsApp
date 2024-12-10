@@ -1,4 +1,5 @@
-
+import scala.annotation.tailrec
+import scala.io.StdIn
 
 
 object F1StatisticsApp extends App {
@@ -6,6 +7,8 @@ object F1StatisticsApp extends App {
   @main
   def main(): Unit = {
     println("Welcome to the F1 Statistics CLI Application")
+
+    MenuHandler.menuController()
 
     // TODO -  Load f1 Dataset
 
@@ -18,16 +21,71 @@ object F1StatisticsApp extends App {
 
 }
 
+/**
+ * Handles Menu System For F1 Statistics App
+ */
 object MenuHandler {
-  // TODO - Display the main menu options to the user
 
-  // TODO - Use a tail-recursive function to handle user input and menu navigation
+  /**
+   * Prints menu options to the console
+   */
+  private def displayMenu(): Unit = {
+    println(
+      """
+        |F1 Statistics Application Menu:
+        |1. Display winners by year
+        |2. Display results for a specific season
+        |3. Display total races for each season
+        |4. Display average points per season
+        |5. Display total points per season
+        |6. Display total points for a specific driver
+        |7. Exit
+        |""".stripMargin
+    )
+  }
 
-  // TODO - Map menu options to corresponding analysis functions from DataAnalyser
+  /**
+   * Manages the Menu interaction Loop
+   * Displays Menu, Processes Users Input, Maps Input to corresponding action.
+   *
+   * @param f1Data Dataset used for the F1Statistics Application.
+   * @see f1Data
+   */
+  def menuController(): Unit = {
+    val menuOptions = Map(
+      1 -> (() => println("Display Winners By Year")),
+      2 -> (() => println("Display Results for Specific Season")),
+      3 -> (() => println("Display Total Races for each season")),
+      4 -> (() => println("Display Average Points for each Season")),
+      5 -> (() => println("Display Total Points for each Season")),
+      6 -> (() => println("Display Total Points for Specific Driver"))
+    )
 
-  // TODO - Handle invalid menu choices and prompt the user to try again
+    /**
+     * Handles Recursive Loop For Menu Navigation.
+     * Processes User Input, Validates Input, Performs Corresponding Action.
+     * Exits Loop when User Selects Exit option
+     *
+     * @throws IllegalArgumentException If an invalid Menu Option is entered
+     */
+    @tailrec
+    def menuLoop(): Unit = {
+      displayMenu()
+      StdIn.readLine("Enter Selected Option: ").trim.toIntOption match
+        case Some(choice) if menuOptions.contains(choice) =>
+          menuOptions(choice)()
+          menuLoop()
+        case Some(7) =>
+          println("Exiting Application...")
+          System.exit(0)
+        case _ =>
+          println("Invalid Option, Please try again.")
+          menuLoop()
+    }
 
-  // TODO - Add an option to gracefully exit the application
+    // Start Menu Loop
+    menuLoop()
+  }
 }
 
 object DataHandler {
