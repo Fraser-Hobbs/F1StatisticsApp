@@ -64,7 +64,7 @@ object MenuHandler {
       1 -> (() => DataAnalyser.displayWinners(f1Data)),
       2 -> (() => DataAnalyser.displaySeasonResults(f1Data)),
       3 -> (() => DataAnalyser.displayTotalRaces(f1Data)),
-      4 -> (() => println("Display Average Points for each Season")),
+      4 -> (() => DataAnalyser.displayAveragePoints(f1Data)),
       5 -> (() => println("Display Total Points for each Season")),
       6 -> (() => println("Display Total Points for Specific Driver"))
     )
@@ -326,9 +326,40 @@ object DataAnalyser {
       }
   }
 
-  // TODO - Analysis 4 - Get average points per season
+  /**
+   * Calculates the average points for each season in the dataset.
+   *
+   * @param f1Data The dataset containing F1 data.
+   * @return A map where the key is the year and the value is the average points for that season.
+   */
+  private def getAveragePointsByYear(f1Data: F1Data): Map[Int, Float] = {
+    f1Data.map { case (year, drivers) =>
+      val totalPoints = drivers.map(_._2).sum
+      val averagePoints = if (drivers.nonEmpty) totalPoints / drivers.size else 0.0f
+      year -> averagePoints
+    }
+  }
 
-  // TODO - Analysis 4 - Display average points per season
+  /**
+   * Displays the average points for each season in the dataset.
+   *
+   * @param f1Data The dataset containing F1 data.
+   */
+  def displayAveragePoints(f1Data: F1Data): Unit = {
+    val averages = getAveragePointsByYear(f1Data)
+    println("\nAverage Points by Year:")
+
+    // Print header
+    println(f"${"Year"}%-6s ${"Average Points"}%-15s")
+    println("-" * 25)
+
+    // Sort by year in descending order and print each average
+    averages.toSeq
+      .sortBy(-_._1) // Sort by year in descending order
+      .foreach { case (year, avgPoints) =>
+        println(f"$year%-6d $avgPoints%-15.2f")
+      }
+  }
 
   // TODO - Analysis 5 - Get total points by season
 
