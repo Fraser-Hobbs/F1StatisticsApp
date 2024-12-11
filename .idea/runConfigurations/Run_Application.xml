@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run Application" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="f1statisticsapp.Main" />
+    <module name="F1Statistics" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="f1statisticsapp.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

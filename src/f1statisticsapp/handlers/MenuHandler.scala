@@ -1,4 +1,7 @@
-import DataHandler.F1Data
+package f1statisticsapp.handlers
+
+import f1statisticsapp.analysis.DataAnalyser
+import f1statisticsapp.handlers.DataHandler.F1Data
 
 import scala.annotation.tailrec
 import scala.io.StdIn
@@ -44,7 +47,7 @@ object MenuHandler {
    * @param f1Data Dataset used for the F1Statistics Application.
    * @see f1Data
    */
-  def menuController(f1Data: F1Data): Unit = {
+  def menuController(f1Data: F1Data, exitFunction: () => Unit = () => System.exit(0)): Unit = {
     val menuOptions = Map(
       1 -> (() => DataAnalyser.displayWinners(f1Data)),
       2 -> (() => DataAnalyser.displaySeasonResults(f1Data)),
@@ -70,7 +73,7 @@ object MenuHandler {
           menuLoop()
         case Some(7) =>
           println("Exiting Application...")
-          System.exit(0)
+          exitFunction()
         case _ =>
           println("Invalid Option, Please try again.")
           menuLoop()

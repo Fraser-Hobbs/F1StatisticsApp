@@ -1,4 +1,7 @@
-import DataHandler.{F1Data, F1Driver}
+package f1statisticsapp.analysis
+
+import f1statisticsapp.handlers.DataHandler.{F1Data, F1Driver}
+
 import scala.io.StdIn
 
 /**
@@ -26,7 +29,7 @@ object DataAnalyser {
    * @param f1Data The dataset containing F1 data.
    * @return A map where the key is the year and the value is the winner's F1Driver tuple.
    */
-  private def getWinners(f1Data: F1Data): Map[Int, F1Driver] = {
+  protected[f1statisticsapp] def getWinners(f1Data: F1Data): Map[Int, F1Driver] = {
     f1Data.collect {
       case (year, drivers) if drivers.nonEmpty => year -> drivers.head
     }
@@ -58,6 +61,7 @@ object DataAnalyser {
     }
   }
 
+
   /**
    * Retrieves the results for a specific season (year) from the F1 dataset.
    *
@@ -65,9 +69,10 @@ object DataAnalyser {
    * @param year   The year for which results are to be retrieved.
    * @return An Option containing a list of F1Driver tuples if the year exists, or None otherwise.
    */
-  private def getSeasonResults(f1Data: F1Data, year: Int): Option[List[F1Driver]] = {
+  protected[f1statisticsapp] def getSeasonResults(f1Data: F1Data, year: Int): Option[List[F1Driver]] = {
     f1Data.get(year)
   }
+
 
   /**
    * Displays the results for a specific season (year), sorted by points and wins.
@@ -105,9 +110,10 @@ object DataAnalyser {
    * @param f1Data The dataset containing F1 data.
    * @return A map where the key is the year, and the value is the total number of races for that year.
    */
-  private def getTotalRacesByYear(f1Data: F1Data): Map[Int, Int] = {
+  protected[f1statisticsapp] def getTotalRacesByYear(f1Data: F1Data): Map[Int, Int] = {
     f1Data.view.mapValues(drivers => drivers.map(_._3).sum).toMap
   }
+
 
   /**
    * Displays the total number of races for each year in the dataset.
@@ -126,7 +132,7 @@ object DataAnalyser {
 
     // Sort by year in descending order and print each result
     totalRaces.toSeq
-      .sortBy(-_._1) // Sort by year in descending order
+      .sortBy(-_._1)
       .foreach { case (year, races) =>
         println(f"$year%-6d $races%-12d")
       }
@@ -138,7 +144,7 @@ object DataAnalyser {
    * @param f1Data The dataset containing F1 data.
    * @return A map where the key is the year and the value is the average points for that season.
    */
-  private def getAveragePointsByYear(f1Data: F1Data): Map[Int, Float] = {
+  protected[f1statisticsapp] def getAveragePointsByYear(f1Data: F1Data): Map[Int, Float] = {
     f1Data.map { case (year, drivers) =>
       val totalPoints = drivers.map(_._2).sum
       val averagePoints = if (drivers.nonEmpty) totalPoints / drivers.size else 0.0f
@@ -174,7 +180,7 @@ object DataAnalyser {
    * @param f1Data The dataset containing F1 data.
    * @return A list of tuples where each tuple contains the year and the total points for that season, sorted by year in descending order.
    */
-  private def getTotalPointsByYear(f1Data: F1Data): List[(Int, Float)] = {
+  protected[f1statisticsapp] def getTotalPointsByYear(f1Data: F1Data): List[(Int, Float)] = {
     f1Data.map { case (year, drivers) =>
       year -> drivers.map(_._2).sum // Calculate the sum of points for each year
     }.toList.sortBy(-_._1) // Sort by year in descending order
@@ -210,7 +216,7 @@ object DataAnalyser {
    * @param driverName The name or partial name of the driver to search for.
    * @return A map where the key is the driver's name and the value is their total points.
    */
-  private def getDriverPoints(f1Data: F1Data, driverName: String): Map[String, Float] = {
+  protected[f1statisticsapp] def getDriverPoints(f1Data: F1Data, driverName: String): Map[String, Float] = {
     f1Data.values.flatten
       .filter { case (name, _, _) => name.toLowerCase.contains(driverName.toLowerCase) }
       .groupBy(_._1)
